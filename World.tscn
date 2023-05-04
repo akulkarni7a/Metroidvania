@@ -25,9 +25,3 @@ position = Vector2( 25, 164 )
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
 position = Vector2( 31, 159 )
-ACCELERATION = null
-MAX_SPEED = null
-FRICTION = null
-GRAVITY = null
-JUMP_FORCE = null
-MAX_SLOPE_ANGLE = null
