@@ -1,11 +1,15 @@
 extends KinematicBody2D
 
+const DustEffect = preload("res://Effects/DustEffect.tscn")
+const PlayerBullet = preload("res://Player/PlayerBullet.tscn")
+
 export (int) var ACCELERATION = 512
 export (int) var MAX_SPEED = 64
 export (float) var FRICTION = 0.25
 export (int) var GRAVITY = 200
 export (int) var JUMP_FORCE = 128
 export (int) var MAX_SLOPE_ANGLE = 46
+export (int) var BULLET_SPEED = 250
 
 var motion = Vector2.ZERO
 var snap_vector = Vector2.ZERO
@@ -13,6 +17,10 @@ var just_jumped = false
 
 onready var sprite = $Sprite
 onready var spriteAnimator = $SpriteAnimator
+onready var coyoteJumpTimer = $CoyoteJumpTimer
+onready var fireBulletTImer = $FireBulletTimer
+onready var gun = $Sprite/PlayerGun
+onready var muzzle = $Sprite/PlayerGun/Sprite/Muzzle
 
 func _physics_process(delta):
 	just_jumped = false
@@ -25,6 +33,20 @@ func _physics_process(delta):
 	update_animations(input_vector)
 	move()
 	
+	if Input.is_action_just_pressed("fire") and fireBulletTImer.time_left == 0:
+		fire_bullet()
+
+func fire_bullet():
+	var bullet = Utils.instance_scene_on_main(PlayerBullet,muzzle.global_position)
+	bullet.velocity = Vector2.RIGHT.rotated(gun.rotation) * BULLET_SPEED
+	bullet.velocity.x *= sprite.scale.x
+	bullet.rotation = bullet.velocity.angle()
+	fireBulletTImer.start()
+
+func create_dust_effect():
+	var dust_position = global_position
+	dust_position.x += rand_range(-4,4)
+	Utils.instance_scene_on_main(DustEffect,dust_position)
 
 func get_input_vector():
 	var input_vector = Vector2.ZERO
@@ -45,7 +67,7 @@ func update_snap_vector():
 		snap_vector = Vector2.DOWN
 
 func jump_check():
-	if is_on_floor():
+	if is_on_floor() or coyoteJumpTimer.time_left > 0:
 		if Input.is_action_just_pressed("ui_up"):
 			just_jumped = true
 			motion.y =- JUMP_FORCE
@@ -60,11 +82,13 @@ func apply_gravity(delta):
 		motion.y += GRAVITY * delta
 
 func update_animations(input_vector):
+	sprite.scale.x = sign(get_local_mouse_position().x)
 	if input_vector.x != 0:
-		sprite.scale.x = sign(input_vector.x)
 		spriteAnimator.play("Run")
+		spriteAnimator.playback_speed = input_vector.x * sprite.scale.x
 	else:
 		spriteAnimator.play("Idle")
+		spriteAnimator.playback_speed = 1
 
 	if not is_on_floor():
 		spriteAnimator.play("Jump")
@@ -78,7 +102,9 @@ func move():
 	#landing
 	if was_in_air and is_on_floor():
 		motion.x = last_motion.x
+		create_dust_effect()
 	
 	#just left ground
 	if was_on_floor and not is_on_floor() and not just_jumped:
 		motion.y = 0 
+		coyoteJumpTimer.start()
