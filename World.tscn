@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://World/TileMap.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Player/Player.tscn" type="PackedScene" id=2]
 [ext_resource path="res://World.gd" type="Script" id=3]
 [ext_resource path="res://World/MovingPlatforms.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Enemies/WalkingEnemy.tscn" type="PackedScene" id=5]
 
 [node name="World" type="Node"]
 script = ExtResource( 3 )
@@ -24,5 +25,8 @@ tile_data = PoolIntArray( 196611, 0, 4, 196612, 0, 196609, 196613, 0, 7, 327676,
 
 [node name="MovingPlatforms" parent="." instance=ExtResource( 4 )]
 position = Vector2( 85, 168 )
+
+[node name="WalkingEnemy" parent="." instance=ExtResource( 5 )]
+position = Vector2( -3, 160 )
 
 [editable path="Player"]
